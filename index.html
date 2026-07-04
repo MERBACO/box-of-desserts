@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Merbaco — Box of Desserts</title>
+<style>
+  :root{
+    --gold:#C9813A; --brown:#3D2B1A; --cream:#FDF8F0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:Georgia,'Times New Roman',serif;
+    background:var(--cream);
+    color:var(--brown);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:24px;
+  }
+  .box{max-width:360px}
+  .brand{
+    font-size:14px;
+    letter-spacing:0.12em;
+    color:var(--gold);
+    text-transform:uppercase;
+    margin-bottom:18px;
+    font-weight:bold;
+  }
+  .spinner{
+    width:34px;height:34px;
+    margin:0 auto 20px;
+    border:3px solid #E0D4BF;
+    border-top-color:var(--gold);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  h1{font-size:18px;font-weight:normal;margin-bottom:8px}
+  p{font-size:13px;color:#7a6a55}
+  a.fallback{
+    display:inline-block;margin-top:18px;
+    color:var(--gold);text-decoration:underline;font-size:13px;
+  }
+  .error{display:none}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="brand">Merbaco · Box of Desserts</div>
+    <div class="spinner" id="spinner"></div>
+    <h1 id="title">Taking you to the recipe video…</h1>
+    <p id="subtitle">Please wait a moment.</p>
+    <a class="fallback" id="fallbackLink" style="display:none">Tap here if you are not redirected</a>
+  </div>
+
+<script>
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+
+  function showError(msg) {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('title').textContent = 'Recipe not found';
+    document.getElementById('subtitle').textContent = msg;
+  }
+
+  if (!id) {
+    showError('No recipe number was provided in the link.');
+    return;
+  }
+
+  fetch('links.json?_=' + Date.now())
+    .then(function (res) {
+      if (!res.ok) throw new Error('Could not load recipe list.');
+      return res.json();
+    })
+    .then(function (data) {
+      var target = data[id];
+      if (!target) {
+        showError('Recipe #' + id + ' could not be found. Please contact the seller.');
+        return;
+      }
+      var link = document.getElementById('fallbackLink');
+      link.href = target;
+      link.style.display = 'inline-block';
+      // Small delay so the branded screen is visible even on fast connections
+      setTimeout(function () {
+        window.location.replace(target);
+      }, 400);
+    })
+    .catch(function (err) {
+      showError('Something went wrong loading the recipe. Please try again.');
+    });
+})();
+</script>
+</body>
+</html>
